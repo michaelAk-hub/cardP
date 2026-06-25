@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+jobs:
+  api:
+    name: API — build, prisma validate, test
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: bluecard
+          POSTGRES_PASSWORD: bluecard
+          POSTGRES_DB: bluecard
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U bluecard"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://bluecard:bluecard@localhost:5432/bluecard?schema=public
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build shared package
+        run: npm run build -w @blue-card/shared
+
+      - name: Prisma validate + generate
+        working-directory: apps/api
+        run: |
+          npx prisma validate
+          npx prisma generate
+
+      - name: Apply migrations
+        working-directory: apps/api
+        run: npx prisma migrate deploy
+
+      - name: Build API
+        run: npm run build -w @blue-card/api
+
+      - name: Test
+        run: npm test -w @blue-card/api

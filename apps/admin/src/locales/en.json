@@ -1,0 +1,15 @@
+{
+  "app": {
+    "title": "Blue Card — Admin"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "students": "Students",
+    "advertising": "Advertising",
+    "stores": "Stores",
+    "admins": "Admins"
+  },
+  "foundation": {
+    "ready": "Foundation scaffold ready. Feature pages are built milestone by milestone."
+  }
+}

@@ -1,0 +1,310 @@
+// Blue Card — Prisma schema (v1)
+// Source of truth: blue-card-master-spec.md section 5.
+// Conventions:
+//   - All IDs are UUIDs.
+//   - All tables have created_at; mutable tables also have updated_at.
+//   - User-facing text fields are stored per-language (_en / _el).
+//   - Models are PascalCase and mapped to snake_case tables via @@map.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum AccountStatus {
+  pending
+  active
+  deactive
+}
+
+enum AdminRole {
+  root
+  protoporia
+}
+
+enum TamperStatus {
+  clean
+  suspect
+  flagged
+}
+
+enum ReviewDecision {
+  approved
+  rejected
+}
+
+enum StoreStatus {
+  active
+  hidden
+}
+
+enum DiscountType {
+  percent
+  fixed
+}
+
+enum OfferStatus {
+  active
+  expired
+}
+
+enum WalletPlatform {
+  apple
+  google
+}
+
+enum WalletPassState {
+  issued
+  revoked
+}
+
+enum VerificationTokenType {
+  phone_otp
+  email_verify
+  password_reset
+}
+
+enum CampaignChannel {
+  sms
+  email
+}
+
+enum DeliveryStatus {
+  queued
+  sent
+  failed
+  skipped_optout
+}
+
+// ---------------------------------------------------------------------------
+// Models
+// ---------------------------------------------------------------------------
+
+model University {
+  id       String     @id @default(uuid()) @db.Uuid
+  nameEn   String     @map("name_en")
+  nameEl   String     @map("name_el")
+  active   Boolean    @default(true)
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  students Student[]
+
+  @@map("universities")
+}
+
+model Student {
+  id                 String        @id @default(uuid()) @db.Uuid
+  name               String
+  surname            String
+  email              String        @unique
+  phone              String        @unique
+  universityId       String        @map("university_id") @db.Uuid
+  passwordHash       String        @map("password_hash")
+  accountStatus      AccountStatus @default(pending) @map("account_status")
+  phoneVerified      Boolean       @default(false) @map("phone_verified")
+  emailVerified      Boolean       @default(false) @map("email_verified")
+  idVerified         Boolean       @default(false) @map("id_verified")
+  marketingConsent   Boolean       @default(false) @map("marketing_consent")
+  cardSerial         String?       @unique @map("card_serial")
+  deactivationReason String?       @map("deactivation_reason")
+  createdAt          DateTime      @default(now()) @map("created_at")
+  updatedAt          DateTime      @updatedAt @map("updated_at")
+
+  university         University           @relation(fields: [universityId], references: [id])
+  idDocument         IdDocument?
+  idReviews          IdReview[]
+  walletPasses       WalletPass[]
+  verificationTokens VerificationToken[]
+  campaignRecipients CampaignRecipient[]
+
+  @@index([universityId])
+  @@index([accountStatus])
+  @@map("students")
+}
+
+model AdminUser {
+  id           String    @id @default(uuid()) @db.Uuid
+  role         AdminRole
+  email        String    @unique
+  passwordHash String    @map("password_hash")
+  totpSecret   String?   @map("totp_secret")
+  totpEnabled  Boolean   @default(false) @map("totp_enabled")
+  createdById  String?   @map("created_by") @db.Uuid
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  createdBy    AdminUser?  @relation("AdminCreatedBy", fields: [createdById], references: [id])
+  createdAdmins AdminUser[] @relation("AdminCreatedBy")
+
+  idReviews    IdReview[]
+  stores       Store[]
+  offers       Offer[]
+  campaigns    Campaign[]
+  auditLogs    AuditLog[]
+
+  @@map("admin_users")
+}
+
+model IdDocument {
+  id           String        @id @default(uuid()) @db.Uuid
+  studentId    String        @unique @map("student_id") @db.Uuid
+  frontKey     String        @map("front_key")
+  backKey      String        @map("back_key")
+  tamperScore  Float?        @map("tamper_score")
+  tamperStatus TamperStatus? @map("tamper_status")
+  uploadedAt   DateTime      @default(now()) @map("uploaded_at")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+
+  student      Student       @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@map("id_documents")
+}
+
+model IdReview {
+  id          String         @id @default(uuid()) @db.Uuid
+  studentId   String         @map("student_id") @db.Uuid
+  adminId     String         @map("admin_id") @db.Uuid
+  decision    ReviewDecision
+  reason      String?        // required on reject (enforced in application layer)
+  description String?        // required on reject (enforced in application layer)
+  reviewedAt  DateTime       @default(now()) @map("reviewed_at")
+  createdAt   DateTime       @default(now()) @map("created_at")
+
+  student     Student        @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  admin       AdminUser      @relation(fields: [adminId], references: [id])
+
+  @@index([studentId])
+  @@index([adminId])
+  @@map("id_reviews")
+}
+
+model Store {
+  id            String      @id @default(uuid()) @db.Uuid
+  nameEn        String      @map("name_en")
+  nameEl        String      @map("name_el")
+  descriptionEn String      @map("description_en")
+  descriptionEl String      @map("description_el")
+  logoKey       String?     @map("logo_key")
+  status        StoreStatus @default(active)
+  createdById   String      @map("created_by") @db.Uuid
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+
+  createdBy     AdminUser   @relation(fields: [createdById], references: [id])
+  offers        Offer[]
+
+  @@index([status])
+  @@map("stores")
+}
+
+model Offer {
+  id            String       @id @default(uuid()) @db.Uuid
+  storeId       String       @map("store_id") @db.Uuid
+  titleEn       String       @map("title_en")
+  titleEl       String       @map("title_el")
+  descriptionEn String       @map("description_en")
+  descriptionEl String       @map("description_el")
+  discountType  DiscountType @map("discount_type")
+  discountValue Decimal      @map("discount_value") @db.Decimal(10, 2)
+  terms         String?
+  expiryDate    DateTime     @map("expiry_date") @db.Date
+  status        OfferStatus  @default(active)
+  createdById   String       @map("created_by") @db.Uuid
+  createdAt     DateTime     @default(now()) @map("created_at")
+  updatedAt     DateTime     @updatedAt @map("updated_at")
+
+  store         Store        @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  createdBy     AdminUser    @relation(fields: [createdById], references: [id])
+
+  @@index([storeId])
+  @@index([status])
+  @@index([expiryDate])
+  @@map("offers")
+}
+
+model WalletPass {
+  id           String          @id @default(uuid()) @db.Uuid
+  studentId    String          @map("student_id") @db.Uuid
+  platform     WalletPlatform
+  serialNumber String          @unique @map("serial_number")
+  state        WalletPassState @default(issued)
+  issuedAt     DateTime        @default(now()) @map("issued_at")
+  createdAt    DateTime        @default(now()) @map("created_at")
+  updatedAt    DateTime        @updatedAt @map("updated_at")
+
+  student      Student         @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+  @@map("wallet_passes")
+}
+
+model VerificationToken {
+  id        String                @id @default(uuid()) @db.Uuid
+  studentId String                @map("student_id") @db.Uuid
+  type      VerificationTokenType
+  token     String                // stored hashed, never plaintext
+  expiresAt DateTime              @map("expires_at")
+  used      Boolean               @default(false)
+  createdAt DateTime              @default(now()) @map("created_at")
+
+  student   Student               @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId, type])
+  @@map("verification_tokens")
+}
+
+model Campaign {
+  id             String          @id @default(uuid()) @db.Uuid
+  adminId        String          @map("admin_id") @db.Uuid
+  channel        CampaignChannel
+  subject        String?         // nullable for SMS
+  body           String
+  audienceFilter Json            @map("audience_filter")
+  sentAt         DateTime?       @map("sent_at")
+  createdAt      DateTime        @default(now()) @map("created_at")
+
+  admin          AdminUser           @relation(fields: [adminId], references: [id])
+  recipients     CampaignRecipient[]
+
+  @@index([adminId])
+  @@map("campaigns")
+}
+
+model CampaignRecipient {
+  id             String         @id @default(uuid()) @db.Uuid
+  campaignId     String         @map("campaign_id") @db.Uuid
+  studentId      String         @map("student_id") @db.Uuid
+  deliveryStatus DeliveryStatus @default(queued) @map("delivery_status")
+  createdAt      DateTime       @default(now()) @map("created_at")
+
+  campaign       Campaign       @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  student        Student        @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([campaignId])
+  @@index([studentId])
+  @@map("campaign_recipients")
+}
+
+model AuditLog {
+  id        String   @id @default(uuid()) @db.Uuid
+  adminId   String   @map("admin_id") @db.Uuid
+  action    String
+  detail    Json
+  createdAt DateTime @default(now()) @map("created_at")
+
+  admin     AdminUser @relation(fields: [adminId], references: [id])
+
+  @@index([adminId])
+  @@index([action])
+  @@map("audit_log")
+}

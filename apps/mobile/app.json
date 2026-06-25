@@ -1,0 +1,25 @@
+{
+  "expo": {
+    "name": "Blue Card",
+    "slug": "blue-card",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "bluecard",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#0A4DA2"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.protoporia.bluecard"
+    },
+    "android": {
+      "package": "com.protoporia.bluecard"
+    },
+    "locales": {
+      "el": {},
+      "en": {}
+    }
+  }
+}

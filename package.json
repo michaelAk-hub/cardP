@@ -1,0 +1,26 @@
+{
+  "name": "blue-card",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Blue Card — student discount-card platform (monorepo)",
+  "workspaces": [
+    "apps/api",
+    "apps/admin",
+    "apps/mobile",
+    "packages/shared"
+  ],
+  "scripts": {
+    "dev:infra": "docker compose -f infra/docker-compose.yml up -d",
+    "dev:infra:down": "docker compose -f infra/docker-compose.yml down",
+    "build:shared": "npm run build -w @blue-card/shared",
+    "build:api": "npm run build -w @blue-card/api",
+    "prisma:migrate": "npm run prisma:migrate -w @blue-card/api",
+    "prisma:generate": "npm run prisma:generate -w @blue-card/api",
+    "prisma:seed": "npm run prisma:seed -w @blue-card/api",
+    "dev:api": "npm run start:dev -w @blue-card/api",
+    "dev:admin": "npm run dev -w @blue-card/admin"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

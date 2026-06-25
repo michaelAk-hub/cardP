@@ -1,0 +1,9 @@
+{
+  "app": { "title": "Blue Card" },
+  "tabs": {
+    "home": "Home",
+    "stores": "Stores & Offers",
+    "profile": "Profile"
+  },
+  "foundation": { "ready": "Foundation scaffold ready." }
+}
