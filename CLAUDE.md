@@ -92,8 +92,10 @@ infra/
 ## Build order (milestones)
 
 1. **Foundation** ✅ — monorepo, Docker Compose (pg+redis), Prisma schema +
-   first migration, i18n scaffolding, university seed, base CI. *(this commit)*
-2. **Auth** — student custom auth; admin/root auth + TOTP; root "create admin".
+   first migration, i18n scaffolding, university seed, base CI.
+2. **Auth** ✅ — student custom auth (register/login/refresh/logout/forgot+reset);
+   admin/root auth with TOTP enrol+verify; root create/disable admins; argon2
+   hashing, rotating refresh tokens, global rate limiting, audit log.
 3. **Registration + verification** — ID upload (encrypted), Twilio OTP, email verify.
 4. **Admin core** — students table + row actions; ID review (approve/reject +
    reason email); activation rule; manual deactivate; audit log.
