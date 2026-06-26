@@ -19,6 +19,7 @@ import { ActivationService } from '../activation/activation.service';
 import { MailService } from '../mail/mail.service';
 import { HashingService } from '../auth/hashing.service';
 import { TokenService } from '../auth/token.service';
+import { StudentDeletionService } from '../gdpr/student-deletion.service';
 import { DeactivateDto, IdReviewDto, ListStudentsQueryDto } from './dto';
 
 const PASSWORD_RESET_TTL_MS = 60 * 60 * 1000;
@@ -51,8 +52,16 @@ export class AdminStudentsService {
     private readonly mail: MailService,
     private readonly hashing: HashingService,
     private readonly tokens: TokenService,
+    private readonly deletion: StudentDeletionService,
     private readonly config: ConfigService,
   ) {}
+
+  // Admin-initiated right-to-erasure: deletes PII + ID photos (spec §8).
+  async erase(adminId: string, studentId: string): Promise<{ deleted: true }> {
+    await this.deletion.delete(studentId);
+    await this.audit.record(adminId, 'student.erase', { studentId });
+    return { deleted: true };
+  }
 
   async list(query: ListStudentsQueryDto) {
     const page = query.page ?? 1;

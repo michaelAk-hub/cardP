@@ -7,6 +7,7 @@ import { ActivationService } from '../activation/activation.service';
 import { MailService } from '../mail/mail.service';
 import { HashingService } from '../auth/hashing.service';
 import { TokenService } from '../auth/token.service';
+import { StudentDeletionService } from '../gdpr/student-deletion.service';
 import { ConfigService } from '@nestjs/config';
 
 function build(student: any = { id: 'stu1', email: 's@test.dev', accountStatus: AccountStatus.Pending }) {
@@ -30,10 +31,11 @@ function build(student: any = { id: 'stu1', email: 's@test.dev', accountStatus: 
   } as unknown as MailService;
   const hashing = { hashToken: jest.fn(() => 'h') } as unknown as HashingService;
   const tokens = { revokeAll: jest.fn(async () => undefined) } as unknown as TokenService;
+  const deletion = { delete: jest.fn(async () => undefined) } as unknown as StudentDeletionService;
   const config = { get: jest.fn((_k: string, d?: unknown) => d) } as unknown as ConfigService;
 
   return {
-    svc: new AdminStudentsService(prisma, storage, audit, activation, mail, hashing, tokens, config),
+    svc: new AdminStudentsService(prisma, storage, audit, activation, mail, hashing, tokens, deletion, config),
     prisma,
     audit,
     activation,

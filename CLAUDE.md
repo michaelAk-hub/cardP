@@ -114,7 +114,9 @@ infra/
 8. **Advertising** ✅ — audience builder + preview; consent-filtered campaign
    send (email/SMS) with opt-out; per-recipient delivery tracking. inline/BullMQ.
 9. **Student app UI** — Foody/Wolt-style home + stores/offers + profile + wallet buttons.
-10. **Analytics + hardening** — dashboard metrics, rate limits, GDPR endpoints, backups, bilingual QA.
+10. **Analytics + hardening** ✅ — dashboard metrics (summary + signups series);
+    GDPR right-to-access/erasure (student self + admin); helmet headers + global
+    exception filter; encrypted backup script. (rate limits already global.)
 
 ## Working agreements
 

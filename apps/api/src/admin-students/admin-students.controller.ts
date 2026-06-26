@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseUUIDPipe,
@@ -96,5 +97,14 @@ export class AdminStudentsController {
     @Param('id', ParseUUIDPipe) id: string,
   ) {
     return this.students.recreateCardSerial(admin.id, id);
+  }
+
+  // GDPR right-to-erasure (admin-initiated): deletes PII + ID photos.
+  @Delete(':id')
+  erase(
+    @CurrentUser() admin: AuthPrincipal,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.students.erase(admin.id, id);
   }
 }

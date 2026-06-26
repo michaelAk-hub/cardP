@@ -4,12 +4,14 @@ A student discount-card platform. Students register on a native mobile app, get
 verified, and receive a **visual** discount card in Apple/Google Wallet.
 Protoporia admins manage students, stores, and offers from a web dashboard.
 
-> **Status:** Milestone 8 — **Advertising** (Milestone 7 Wallet deferred pending
-> Apple/Google credentials). Marketing campaigns: an audience builder with a
-> live preview, consent-filtered send over email/SMS with an opt-out affordance,
-> and per-recipient delivery tracking. Done so far: Foundation, Auth,
-> Registration, Admin core, Tamper-check, Stores & offers, Advertising. Remaining:
-> Wallet (7), Mobile UI (9), Analytics/hardening (10) — see `CLAUDE.md`.
+> **Status:** Milestone 10 — **Analytics + hardening**. Dashboard metrics
+> (status summary + signups time series), GDPR right-to-access (data export) and
+> right-to-erasure (student self-delete + admin delete, purging ID photos),
+> security headers (helmet), and a consistent global error filter. This completes
+> the **backend** for v1 — the only milestones left are **Wallet (7)** (needs
+> Apple/Google credentials) and the **Student mobile app UI (9)**. Done:
+> Foundation, Auth, Registration, Admin core, Tamper-check, Stores & offers,
+> Advertising, Analytics/hardening — see `CLAUDE.md`.
 
 See [`CLAUDE.md`](./CLAUDE.md) for the full project context, invariants, and
 build order. Source specs: `bluecardmasterspec.md`, `bluecarddesign.md`.
@@ -195,6 +197,28 @@ GET  /api/admin/campaigns/:id       campaign + per-status delivery stats
   the campaign's `sent_at` is stamped on completion.
 - Transactional messages (OTP, verify, rejection, card-ready) bypass this path
   and are exempt from the consent filter.
+
+### Analytics + GDPR + hardening (Milestone 10)
+
+Analytics — admin (root or protoporia):
+
+```
+GET /api/admin/analytics/summary          student status counts, active offers, store counts
+GET /api/admin/analytics/signups?days=30  signups-per-day time series
+```
+
+GDPR (spec §8):
+
+```
+GET    /api/student/me/data-export   right-to-access: machine-readable export (no secrets)
+DELETE /api/student/me               right-to-erasure: self-delete (purges PII + ID photos)
+DELETE /api/admin/students/:id       admin-initiated erasure (audited)
+```
+
+Hardening: **helmet** security headers, a **global exception filter** (consistent
+error shape; 500s logged without leaking internals), global + per-endpoint rate
+limiting, and `infra/scripts/backup.sh` (gzipped `pg_dump`, optional GPG
+encryption + off-site copy, retention).
 
 Admin dashboard: `npm run dev:admin` (Vite on :5173).
 Mobile app: `cd apps/mobile && npm install && npm start` (Expo).
