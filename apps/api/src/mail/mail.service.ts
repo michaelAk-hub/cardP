@@ -34,6 +34,20 @@ export class MailService {
     return Promise.resolve();
   }
 
+  // Promotional broadcast (new store / new offer, marketing campaigns).
+  // Subject to the marketing-consent filter; MUST carry an opt-out link.
+  async sendBroadcast(
+    to: string,
+    subject: string,
+    body: string,
+    optOutUrl: string,
+    _locale: Locale,
+  ): Promise<void> {
+    // TODO(milestone: email): send via provider + queue; localize el/en body.
+    this.logger.log(`[broadcast] to=${to} subject="${subject}" optOut=${optOutUrl}`);
+    return Promise.resolve();
+  }
+
   // Automatic email on ID rejection (spec §6.4). Transactional — exempt from
   // the marketing-consent filter.
   async sendIdRejection(

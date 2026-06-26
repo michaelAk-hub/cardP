@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
+import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { envValidationSchema } from './config/env.validation';
 import { PrismaModule } from './prisma/prisma.module';
@@ -19,6 +20,8 @@ import { PhoneVerificationModule } from './phone-verification/phone-verification
 import { EmailVerificationModule } from './email-verification/email-verification.module';
 import { AdminStudentsModule } from './admin-students/admin-students.module';
 import { TamperModule } from './tamper/tamper.module';
+import { NotificationsModule } from './notifications/notifications.module';
+import { CatalogModule } from './catalog/catalog.module';
 
 @Module({
   imports: [
@@ -29,6 +32,7 @@ import { TamperModule } from './tamper/tamper.module';
     // Global rate limiting (spec §8) — default ceiling; auth endpoints tighten
     // it further with @Throttle.
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 120 }]),
+    ScheduleModule.forRoot(),
     PrismaModule,
     AuthModule,
     MailModule,
@@ -37,6 +41,7 @@ import { TamperModule } from './tamper/tamper.module';
     SmsModule,
     ActivationModule,
     TamperModule,
+    NotificationsModule,
     HealthModule,
     StudentAuthModule,
     AdminAuthModule,
@@ -45,8 +50,8 @@ import { TamperModule } from './tamper/tamper.module';
     PhoneVerificationModule,
     EmailVerificationModule,
     AdminStudentsModule,
-    // Later milestones: stores/offers, wallet, advertising —
-    // see CLAUDE.md build order.
+    CatalogModule,
+    // Later milestones: wallet, advertising — see CLAUDE.md build order.
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })

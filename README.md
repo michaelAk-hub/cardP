@@ -4,13 +4,13 @@ A student discount-card platform. Students register on a native mobile app, get
 verified, and receive a **visual** discount card in Apple/Google Wallet.
 Protoporia admins manage students, stores, and offers from a web dashboard.
 
-> **Status:** Milestone 5 — **Tamper-check** (on top of Admin core). An advisory
-> tamper scorer (EXIF/metadata + format heuristics, pluggable for a forensics
-> API) runs as a background job on ID upload — BullMQ when Redis is configured,
-> otherwise an in-process inline driver — and fills `tamper_score`/`tamper_status`
-> for the admin review UI. It never auto-rejects. Earlier milestones: Foundation,
-> Auth, Registration, Admin core. Remaining features follow milestone by milestone
-> (see `CLAUDE.md`).
+> **Status:** Milestone 6 — **Stores & offers** (on top of Tamper-check). Admin
+> CRUD for stores (bilingual, logo upload, status) and offers (discount type/
+> value, terms, expiry), a public catalog for the app, **broadcast-on-create**
+> (promotional email to active + consenting students with an opt-out link), and
+> scheduled **offer auto-expiry**. Earlier milestones: Foundation, Auth,
+> Registration, Admin core, Tamper-check. Remaining features follow milestone by
+> milestone (see `CLAUDE.md`).
 
 See [`CLAUDE.md`](./CLAUDE.md) for the full project context, invariants, and
 build order. Source specs: `bluecardmasterspec.md`, `bluecarddesign.md`.
@@ -142,6 +142,39 @@ POST  /api/admin/students/:id/recreate-card-serial
   (→ `active` if phone is verified); rejecting **requires** `reason` +
   `description`, emails the student, and leaves `id_verified` false. Tamper
   status is shown for the reviewer but never auto-decides.
+
+### Stores & offers (Milestone 6)
+
+Admin (root or protoporia):
+
+```
+POST   /api/admin/stores                       create (bilingual; broadcasts if active)
+GET    /api/admin/stores                        ?status&search&page&pageSize
+GET    /api/admin/stores/:id                     store + offers
+PATCH  /api/admin/stores/:id                     update
+DELETE /api/admin/stores/:id                     delete (cascades offers)
+POST   /api/admin/stores/:id/logo                multipart: logo (JPEG/PNG/WEBP/SVG)
+POST   /api/admin/stores/:storeId/offers         create offer (broadcasts)
+GET    /api/admin/stores/:storeId/offers         list
+PATCH  /api/admin/offers/:id                      update
+DELETE /api/admin/offers/:id                      delete
+POST   /api/admin/offers/expire-now               run auto-expiry now (also a daily cron)
+```
+
+Public / student-facing:
+
+```
+GET  /api/stores            active stores + their active offers   (authenticated)
+GET  /api/stores/:id        one active store + active offers       (authenticated)
+GET  /api/stores/:id/logo   store logo image                        (public)
+GET/POST /api/unsubscribe   opt out of marketing (token)            (public)
+```
+
+- **Broadcast-on-create**: creating a visible store or an offer enqueues a
+  promotional email to **active AND `marketing_consent`** students only; every
+  message carries an opt-out link. Driver follows `QUEUE_DRIVER` (inline/BullMQ).
+- **Auto-expiry**: a daily cron (`@nestjs/schedule`) flips active offers past
+  their `expiry_date` to `expired`; `expire-now` triggers the same logic.
 
 Admin dashboard: `npm run dev:admin` (Vite on :5173).
 Mobile app: `cd apps/mobile && npm install && npm start` (Expo).

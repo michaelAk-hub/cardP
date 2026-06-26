@@ -106,7 +106,9 @@ infra/
 5. **Tamper-check** ✅ — advisory scorer (EXIF/metadata + format heuristics,
    pluggable) run as a job (BullMQ / inline driver) on upload; fills
    tamper_score/tamper_status for the review UI. Never auto-rejects.
-6. **Stores & offers** — CRUD + broadcast-on-create; offer auto-expiry.
+6. **Stores & offers** ✅ — admin CRUD (bilingual, logo upload, discount/terms/
+   expiry) + public catalog; broadcast-on-create (consent-filtered + opt-out);
+   scheduled offer auto-expiry.
 7. **Wallet** — Apple + Google pass issuance on activation.
 8. **Advertising** — audience builder, consent filter, campaign + per-recipient tracking.
 9. **Student app UI** — Foody/Wolt-style home + stores/offers + profile + wallet buttons.
