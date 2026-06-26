@@ -22,6 +22,10 @@ secrets/
 # Prisma
 apps/api/prisma/*.db
 
+# Local dev ID-photo storage (encrypted blobs)
+var/
+apps/api/var/
+
 # Logs
 *.log
 npm-debug.log*

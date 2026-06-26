@@ -96,7 +96,9 @@ infra/
 2. **Auth** ✅ — student custom auth (register/login/refresh/logout/forgot+reset);
    admin/root auth with TOTP enrol+verify; root create/disable admins; argon2
    hashing, rotating refresh tokens, global rate limiting, audit log.
-3. **Registration + verification** — ID upload (encrypted), Twilio OTP, email verify.
+3. **Registration + verification** ✅ — ID upload to encrypted storage
+   (S3 SSE / local AES-256-GCM); phone OTP via Twilio Verify (dev verifier
+   fallback); optional email verify; activation rule applied on flag change.
 4. **Admin core** — students table + row actions; ID review (approve/reject +
    reason email); activation rule; manual deactivate; audit log.
 5. **Tamper-check** — scoring job feeding the review-UI flag (advisory).

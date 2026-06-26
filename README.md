@@ -4,11 +4,11 @@ A student discount-card platform. Students register on a native mobile app, get
 verified, and receive a **visual** discount card in Apple/Google Wallet.
 Protoporia admins manage students, stores, and offers from a web dashboard.
 
-> **Status:** Milestone 2 — **Auth** (on top of the Foundation). Student custom
-> auth (register / login / refresh / logout / forgot+reset password), admin/root
-> auth with TOTP (enrol + verify), and root create/disable admins. argon2 password
-> hashing, rotating refresh tokens, global rate limiting, and an audit log.
-> Remaining product features are built milestone by milestone (see `CLAUDE.md`).
+> **Status:** Milestone 3 — **Registration + verification** (on top of Auth).
+> ID-photo upload to encrypted storage, phone verification via Twilio Verify
+> (with a dev fallback), optional email verification, and the activation rule
+> applied whenever a verification flag changes. Earlier milestones: Foundation
+> + Auth. Remaining features follow milestone by milestone (see `CLAUDE.md`).
 
 See [`CLAUDE.md`](./CLAUDE.md) for the full project context, invariants, and
 build order. Source specs: `bluecardmasterspec.md`, `bluecarddesign.md`.
@@ -94,6 +94,29 @@ GET   /api/admins                 list admins
 PATCH /api/admins/:id/disable     disable (revokes sessions)
 PATCH /api/admins/:id/enable      re-enable
 ```
+
+### Registration + verification (Milestone 3)
+
+Authenticated student (Bearer access token):
+
+```
+POST /api/student/id-document          multipart: front, back (JPEG/PNG, <=10MB)
+POST /api/student/phone/send-otp       (Twilio Verify)
+POST /api/student/phone/verify-otp     code            -> phone_verified, re-runs activation
+POST /api/student/email/send-verification
+POST /api/student/email/verify         token           (public; no activation gate)
+```
+
+- **Storage**: `STORAGE_DRIVER=local` encrypts photos on disk with AES-256-GCM
+  (set `STORAGE_ENCRYPTION_KEY`); `STORAGE_DRIVER=s3` uses an S3-compatible
+  bucket with server-side encryption and short-lived presigned view URLs. Only
+  object keys are stored — never public URLs.
+- **Phone OTP**: uses Twilio Verify when `TWILIO_ACCOUNT_SID`,
+  `TWILIO_AUTH_TOKEN`, and `TWILIO_VERIFY_SERVICE_SID` are set; otherwise a dev
+  verifier accepts `OTP_DEV_CODE` (default `000000`).
+- **Activation rule** (`isActivationEligible`): a student becomes `active` only
+  when `phone_verified && id_verified`. Email verification never gates it. Admin
+  ID approval (which sets `id_verified`) arrives in Milestone 4.
 
 Admin dashboard: `npm run dev:admin` (Vite on :5173).
 Mobile app: `cd apps/mobile && npm install && npm start` (Expo).

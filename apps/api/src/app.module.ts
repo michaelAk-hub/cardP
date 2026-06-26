@@ -11,6 +11,12 @@ import { AuditModule } from './audit/audit.module';
 import { StudentAuthModule } from './student-auth/student-auth.module';
 import { AdminAuthModule } from './admin-auth/admin-auth.module';
 import { AdminManagementModule } from './admin-management/admin-management.module';
+import { StorageModule } from './storage/storage.module';
+import { SmsModule } from './sms/sms.module';
+import { ActivationModule } from './activation/activation.module';
+import { IdDocumentModule } from './id-document/id-document.module';
+import { PhoneVerificationModule } from './phone-verification/phone-verification.module';
+import { EmailVerificationModule } from './email-verification/email-verification.module';
 
 @Module({
   imports: [
@@ -25,11 +31,17 @@ import { AdminManagementModule } from './admin-management/admin-management.modul
     AuthModule,
     MailModule,
     AuditModule,
+    StorageModule,
+    SmsModule,
+    ActivationModule,
     HealthModule,
     StudentAuthModule,
     AdminAuthModule,
     AdminManagementModule,
-    // Later milestones: registration/verification, admin core, stores/offers,
+    IdDocumentModule,
+    PhoneVerificationModule,
+    EmailVerificationModule,
+    // Later milestones: admin core (ID review), tamper-check, stores/offers,
     // wallet, advertising — see CLAUDE.md build order.
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
