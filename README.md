@@ -4,11 +4,13 @@ A student discount-card platform. Students register on a native mobile app, get
 verified, and receive a **visual** discount card in Apple/Google Wallet.
 Protoporia admins manage students, stores, and offers from a web dashboard.
 
-> **Status:** Milestone 3 — **Registration + verification** (on top of Auth).
-> ID-photo upload to encrypted storage, phone verification via Twilio Verify
-> (with a dev fallback), optional email verification, and the activation rule
-> applied whenever a verification flag changes. Earlier milestones: Foundation
-> + Auth. Remaining features follow milestone by milestone (see `CLAUDE.md`).
+> **Status:** Milestone 4 — **Admin core** (on top of Registration). The admin
+> students table (filter/search/paginate) with row actions: audited ID-photo
+> viewing, ID review (approve/reject + reason email), manual deactivate/
+> reactivate, send recovery email, recreate card serial. Approving an ID sets
+> `id_verified` and, with phone already verified, flips the student to `active`.
+> Earlier milestones: Foundation, Auth, Registration. Remaining features follow
+> milestone by milestone (see `CLAUDE.md`).
 
 See [`CLAUDE.md`](./CLAUDE.md) for the full project context, invariants, and
 build order. Source specs: `bluecardmasterspec.md`, `bluecarddesign.md`.
@@ -115,8 +117,31 @@ POST /api/student/email/verify         token           (public; no activation ga
   `TWILIO_AUTH_TOKEN`, and `TWILIO_VERIFY_SERVICE_SID` are set; otherwise a dev
   verifier accepts `OTP_DEV_CODE` (default `000000`).
 - **Activation rule** (`isActivationEligible`): a student becomes `active` only
-  when `phone_verified && id_verified`. Email verification never gates it. Admin
-  ID approval (which sets `id_verified`) arrives in Milestone 4.
+  when `phone_verified && id_verified`. Email verification never gates it.
+
+### Admin core (Milestone 4)
+
+Any admin (root or protoporia) — Bearer admin access token:
+
+```
+GET   /api/admin/students                         ?status&universityId&search&page&pageSize
+GET   /api/admin/students/:id                     detail (flags, university, id-doc, reviews)
+GET   /api/admin/students/:id/id-document         viewable links (signed URL or stream path) — audited
+GET   /api/admin/students/:id/id-photo/:side      streams a decrypted photo (local driver) — audited
+POST  /api/admin/students/:id/id-review           { decision: 'approved' }
+                                                  { decision: 'rejected', reason, description }  (emails student)
+POST  /api/admin/students/:id/deactivate          { reason }   (revokes passes + sessions)
+POST  /api/admin/students/:id/reactivate          re-evaluates the activation rule
+POST  /api/admin/students/:id/send-recovery       password-reset email
+POST  /api/admin/students/:id/recreate-card-serial
+```
+
+- **GDPR**: every ID-photo access/view is written to `audit_log`, as is every
+  review decision and deactivation.
+- **ID review**: approving sets `id_verified` and re-runs the activation rule
+  (→ `active` if phone is verified); rejecting **requires** `reason` +
+  `description`, emails the student, and leaves `id_verified` false. Tamper
+  status is shown for the reviewer but never auto-decides.
 
 Admin dashboard: `npm run dev:admin` (Vite on :5173).
 Mobile app: `cd apps/mobile && npm install && npm start` (Expo).

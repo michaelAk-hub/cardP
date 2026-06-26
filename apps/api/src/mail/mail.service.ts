@@ -33,4 +33,17 @@ export class MailService {
     this.logger.log(`[email_verify] to=${to} link=${verifyLink}`);
     return Promise.resolve();
   }
+
+  // Automatic email on ID rejection (spec §6.4). Transactional — exempt from
+  // the marketing-consent filter.
+  async sendIdRejection(
+    to: string,
+    reason: string,
+    description: string,
+    _locale: Locale,
+  ): Promise<void> {
+    // TODO(milestone: email): send via provider + queue; localize el/en body.
+    this.logger.log(`[id_rejected] to=${to} reason="${reason}" desc="${description}"`);
+    return Promise.resolve();
+  }
 }

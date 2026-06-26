@@ -99,8 +99,9 @@ infra/
 3. **Registration + verification** ✅ — ID upload to encrypted storage
    (S3 SSE / local AES-256-GCM); phone OTP via Twilio Verify (dev verifier
    fallback); optional email verify; activation rule applied on flag change.
-4. **Admin core** — students table + row actions; ID review (approve/reject +
-   reason email); activation rule; manual deactivate; audit log.
+4. **Admin core** ✅ — students table (filter/search/paginate) + row actions;
+   ID review (approve/reject + reason email); manual deactivate/reactivate;
+   audited ID-photo viewing (signed URL / stream); recreate card serial.
 5. **Tamper-check** — scoring job feeding the review-UI flag (advisory).
 6. **Stores & offers** — CRUD + broadcast-on-create; offer auto-expiry.
 7. **Wallet** — Apple + Google pass issuance on activation.

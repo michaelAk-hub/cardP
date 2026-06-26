@@ -17,6 +17,7 @@ import { ActivationModule } from './activation/activation.module';
 import { IdDocumentModule } from './id-document/id-document.module';
 import { PhoneVerificationModule } from './phone-verification/phone-verification.module';
 import { EmailVerificationModule } from './email-verification/email-verification.module';
+import { AdminStudentsModule } from './admin-students/admin-students.module';
 
 @Module({
   imports: [
@@ -41,8 +42,9 @@ import { EmailVerificationModule } from './email-verification/email-verification
     IdDocumentModule,
     PhoneVerificationModule,
     EmailVerificationModule,
-    // Later milestones: admin core (ID review), tamper-check, stores/offers,
-    // wallet, advertising — see CLAUDE.md build order.
+    AdminStudentsModule,
+    // Later milestones: tamper-check, stores/offers, wallet, advertising —
+    // see CLAUDE.md build order.
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
