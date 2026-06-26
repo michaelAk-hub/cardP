@@ -4,13 +4,12 @@ A student discount-card platform. Students register on a native mobile app, get
 verified, and receive a **visual** discount card in Apple/Google Wallet.
 Protoporia admins manage students, stores, and offers from a web dashboard.
 
-> **Status:** Milestone 6 — **Stores & offers** (on top of Tamper-check). Admin
-> CRUD for stores (bilingual, logo upload, status) and offers (discount type/
-> value, terms, expiry), a public catalog for the app, **broadcast-on-create**
-> (promotional email to active + consenting students with an opt-out link), and
-> scheduled **offer auto-expiry**. Earlier milestones: Foundation, Auth,
-> Registration, Admin core, Tamper-check. Remaining features follow milestone by
-> milestone (see `CLAUDE.md`).
+> **Status:** Milestone 8 — **Advertising** (Milestone 7 Wallet deferred pending
+> Apple/Google credentials). Marketing campaigns: an audience builder with a
+> live preview, consent-filtered send over email/SMS with an opt-out affordance,
+> and per-recipient delivery tracking. Done so far: Foundation, Auth,
+> Registration, Admin core, Tamper-check, Stores & offers, Advertising. Remaining:
+> Wallet (7), Mobile UI (9), Analytics/hardening (10) — see `CLAUDE.md`.
 
 See [`CLAUDE.md`](./CLAUDE.md) for the full project context, invariants, and
 build order. Source specs: `bluecardmasterspec.md`, `bluecarddesign.md`.
@@ -175,6 +174,27 @@ GET/POST /api/unsubscribe   opt out of marketing (token)            (public)
   message carries an opt-out link. Driver follows `QUEUE_DRIVER` (inline/BullMQ).
 - **Auto-expiry**: a daily cron (`@nestjs/schedule`) flips active offers past
   their `expiry_date` to `expired`; `expire-now` triggers the same logic.
+
+### Advertising / campaigns (Milestone 8)
+
+Admin (root or protoporia):
+
+```
+POST /api/admin/campaigns/preview   { audience }     audience size: matching/consenting/skipped
+POST /api/admin/campaigns           { channel, subject?, body, audience }   create + send
+GET  /api/admin/campaigns           list (+ recipient counts)
+GET  /api/admin/campaigns/:id       campaign + per-status delivery stats
+```
+
+- **Audience builder**: filter students by `status` and/or `universityId`. The
+  audience snapshot is captured as `campaign_recipients` at creation.
+- **Consent filter (enforced at send)**: recipients with `marketing_consent =
+  false` are recorded as `skipped_optout` and never sent; consenters get the
+  message with an opt-out link (email) / `Reply STOP` (SMS). Per-recipient
+  `delivery_status` is tracked (`queued → sent | failed | skipped_optout`), and
+  the campaign's `sent_at` is stamped on completion.
+- Transactional messages (OTP, verify, rejection, card-ready) bypass this path
+  and are exempt from the consent filter.
 
 Admin dashboard: `npm run dev:admin` (Vite on :5173).
 Mobile app: `cd apps/mobile && npm install && npm start` (Expo).

@@ -22,6 +22,7 @@ import { AdminStudentsModule } from './admin-students/admin-students.module';
 import { TamperModule } from './tamper/tamper.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { CatalogModule } from './catalog/catalog.module';
+import { AdvertisingModule } from './advertising/advertising.module';
 
 @Module({
   imports: [
@@ -51,7 +52,9 @@ import { CatalogModule } from './catalog/catalog.module';
     EmailVerificationModule,
     AdminStudentsModule,
     CatalogModule,
-    // Later milestones: wallet, advertising — see CLAUDE.md build order.
+    AdvertisingModule,
+    // Later milestones: wallet, mobile UI, analytics/hardening —
+    // see CLAUDE.md build order.
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })

@@ -34,6 +34,20 @@ export class MailService {
     return Promise.resolve();
   }
 
+  // Marketing campaign email (advertising page). Subject to the consent
+  // filter; MUST carry an opt-out link.
+  async sendCampaignEmail(
+    to: string,
+    subject: string,
+    body: string,
+    optOutUrl: string,
+    _locale: Locale,
+  ): Promise<void> {
+    // TODO(milestone: email): send via provider + queue; localize el/en body.
+    this.logger.log(`[campaign] to=${to} subject="${subject}" optOut=${optOutUrl}`);
+    return Promise.resolve();
+  }
+
   // Promotional broadcast (new store / new offer, marketing campaigns).
   // Subject to the marketing-consent filter; MUST carry an opt-out link.
   async sendBroadcast(

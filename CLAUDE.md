@@ -109,8 +109,10 @@ infra/
 6. **Stores & offers** ✅ — admin CRUD (bilingual, logo upload, discount/terms/
    expiry) + public catalog; broadcast-on-create (consent-filtered + opt-out);
    scheduled offer auto-expiry.
-7. **Wallet** — Apple + Google pass issuance on activation.
-8. **Advertising** — audience builder, consent filter, campaign + per-recipient tracking.
+7. **Wallet** — Apple + Google pass issuance on activation. *(deferred — needs
+   Apple/Google credentials)*
+8. **Advertising** ✅ — audience builder + preview; consent-filtered campaign
+   send (email/SMS) with opt-out; per-recipient delivery tracking. inline/BullMQ.
 9. **Student app UI** — Foody/Wolt-style home + stores/offers + profile + wallet buttons.
 10. **Analytics + hardening** — dashboard metrics, rate limits, GDPR endpoints, backups, bilingual QA.
 
