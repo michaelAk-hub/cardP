@@ -58,7 +58,8 @@ Stores and offers are **data records** owned by admins; stores do **not** log in
 - **Admin:** React + Vite, i18next — `apps/admin`
 - **API:** NestJS (Node + TypeScript) — `apps/api`
 - **DB:** PostgreSQL + **Prisma** (migrations + types)
-- **Queue/jobs:** BullMQ + Redis (SMS/email, broadcasts, tamper-check, passes)
+- **Queue/jobs:** BullMQ + Redis (tamper-check now; broadcasts/passes later).
+  `QUEUE_DRIVER=inline` runs jobs in-process for dev (no Redis); `bullmq` for prod.
 - **Object storage:** S3-compatible (R2/B2/S3/MinIO) for ID photos
 - **Auth:** argon2/bcrypt + JWT (otplib for TOTP)
 - **SMS:** Twilio · **Email:** transactional provider (Resend/Postmark/SES)
@@ -102,7 +103,9 @@ infra/
 4. **Admin core** ✅ — students table (filter/search/paginate) + row actions;
    ID review (approve/reject + reason email); manual deactivate/reactivate;
    audited ID-photo viewing (signed URL / stream); recreate card serial.
-5. **Tamper-check** — scoring job feeding the review-UI flag (advisory).
+5. **Tamper-check** ✅ — advisory scorer (EXIF/metadata + format heuristics,
+   pluggable) run as a job (BullMQ / inline driver) on upload; fills
+   tamper_score/tamper_status for the review UI. Never auto-rejects.
 6. **Stores & offers** — CRUD + broadcast-on-create; offer auto-expiry.
 7. **Wallet** — Apple + Google pass issuance on activation.
 8. **Advertising** — audience builder, consent filter, campaign + per-recipient tracking.

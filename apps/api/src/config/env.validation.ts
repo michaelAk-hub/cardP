@@ -46,4 +46,11 @@ export const envValidationSchema = Joi.object({
   TWILIO_AUTH_TOKEN: Joi.string().allow('').optional(),
   TWILIO_VERIFY_SERVICE_SID: Joi.string().allow('').optional(),
   OTP_DEV_CODE: Joi.string().default('000000'),
+
+  // ----- Jobs / queue -----
+  // 'inline' runs jobs in-process (dev, no Redis); 'bullmq' uses Redis.
+  QUEUE_DRIVER: Joi.string().valid('inline', 'bullmq').default('inline'),
+  // Tamper score thresholds (advisory): >= suspect -> suspect, >= flagged -> flagged.
+  TAMPER_SUSPECT_THRESHOLD: Joi.number().min(0).max(1).default(0.34),
+  TAMPER_FLAGGED_THRESHOLD: Joi.number().min(0).max(1).default(0.67),
 }).unknown(true);

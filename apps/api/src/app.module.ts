@@ -18,6 +18,7 @@ import { IdDocumentModule } from './id-document/id-document.module';
 import { PhoneVerificationModule } from './phone-verification/phone-verification.module';
 import { EmailVerificationModule } from './email-verification/email-verification.module';
 import { AdminStudentsModule } from './admin-students/admin-students.module';
+import { TamperModule } from './tamper/tamper.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { AdminStudentsModule } from './admin-students/admin-students.module';
     StorageModule,
     SmsModule,
     ActivationModule,
+    TamperModule,
     HealthModule,
     StudentAuthModule,
     AdminAuthModule,
@@ -43,7 +45,7 @@ import { AdminStudentsModule } from './admin-students/admin-students.module';
     PhoneVerificationModule,
     EmailVerificationModule,
     AdminStudentsModule,
-    // Later milestones: tamper-check, stores/offers, wallet, advertising —
+    // Later milestones: stores/offers, wallet, advertising —
     // see CLAUDE.md build order.
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],

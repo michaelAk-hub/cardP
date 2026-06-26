@@ -4,13 +4,13 @@ A student discount-card platform. Students register on a native mobile app, get
 verified, and receive a **visual** discount card in Apple/Google Wallet.
 Protoporia admins manage students, stores, and offers from a web dashboard.
 
-> **Status:** Milestone 4 — **Admin core** (on top of Registration). The admin
-> students table (filter/search/paginate) with row actions: audited ID-photo
-> viewing, ID review (approve/reject + reason email), manual deactivate/
-> reactivate, send recovery email, recreate card serial. Approving an ID sets
-> `id_verified` and, with phone already verified, flips the student to `active`.
-> Earlier milestones: Foundation, Auth, Registration. Remaining features follow
-> milestone by milestone (see `CLAUDE.md`).
+> **Status:** Milestone 5 — **Tamper-check** (on top of Admin core). An advisory
+> tamper scorer (EXIF/metadata + format heuristics, pluggable for a forensics
+> API) runs as a background job on ID upload — BullMQ when Redis is configured,
+> otherwise an in-process inline driver — and fills `tamper_score`/`tamper_status`
+> for the admin review UI. It never auto-rejects. Earlier milestones: Foundation,
+> Auth, Registration, Admin core. Remaining features follow milestone by milestone
+> (see `CLAUDE.md`).
 
 See [`CLAUDE.md`](./CLAUDE.md) for the full project context, invariants, and
 build order. Source specs: `bluecardmasterspec.md`, `bluecarddesign.md`.

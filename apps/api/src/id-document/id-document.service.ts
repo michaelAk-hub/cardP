@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { StorageService } from '../storage/storage.service';
+import { TamperQueue } from '../tamper/tamper-queue';
 
 const ALLOWED = new Map<string, string>([
   ['image/jpeg', 'jpg'],
@@ -22,6 +23,7 @@ export class IdDocumentService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly storage: StorageService,
+    private readonly tamperQueue: TamperQueue,
   ) {}
 
   async upload(
@@ -76,7 +78,8 @@ export class IdDocumentService {
       ]);
     }
 
-    // TODO(milestone: tamper-check): enqueue scoring job for doc.id.
+    // Score asynchronously — keeps upload responsive (spec: queue 3rd-party/heavy work).
+    await this.tamperQueue.enqueue(doc.id);
     return { uploaded: true, uploadedAt: doc.uploadedAt };
   }
 
