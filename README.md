@@ -4,14 +4,13 @@ A student discount-card platform. Students register on a native mobile app, get
 verified, and receive a **visual** discount card in Apple/Google Wallet.
 Protoporia admins manage students, stores, and offers from a web dashboard.
 
-> **Status:** Milestone 10 — **Analytics + hardening**. Dashboard metrics
-> (status summary + signups time series), GDPR right-to-access (data export) and
-> right-to-erasure (student self-delete + admin delete, purging ID photos),
-> security headers (helmet), and a consistent global error filter. This completes
-> the **backend** for v1 — the only milestones left are **Wallet (7)** (needs
-> Apple/Google credentials) and the **Student mobile app UI (9)**. Done:
-> Foundation, Auth, Registration, Admin core, Tamper-check, Stores & offers,
-> Advertising, Analytics/hardening — see `CLAUDE.md`.
+> **Status:** Milestone 7 — **Wallet** now done, completing the **entire v1
+> backend**. Apple (`.pkpass`) and Google (save-JWT) passes are issued on
+> activation, exposed via student endpoints gated on `active`, and revoked on
+> deactivation; real signers engage when certs/keys are present, dev stub signers
+> otherwise. The only remaining milestone is the **Student mobile app UI (9)**.
+> Done: Foundation, Auth, Registration, Admin core, Tamper-check, Stores & offers,
+> Wallet, Advertising, Analytics/hardening — see `CLAUDE.md`.
 
 See [`CLAUDE.md`](./CLAUDE.md) for the full project context, invariants, and
 build order. Source specs: `bluecardmasterspec.md`, `bluecarddesign.md`.
@@ -219,6 +218,28 @@ Hardening: **helmet** security headers, a **global exception filter** (consisten
 error shape; 500s logged without leaking internals), global + per-endpoint rate
 limiting, and `infra/scripts/backup.sh` (gzipped `pg_dump`, optional GPG
 encryption + off-site copy, retention).
+
+### Wallet (Milestone 7)
+
+Passes are issued on activation (card serial assigned, `wallet_passes` records
+created) and revoked on deactivation. Student endpoints (gated on `active`):
+
+```
+GET /api/student/wallet          status: active?, card serial, provider config, passes
+GET /api/student/wallet/google   { saveUrl } -> https://pay.google.com/gp/v/save/<jwt>
+GET /api/student/wallet/apple    streams a .pkpass (application/vnd.apple.pkpass)
+```
+
+- **Google**: builds a generic pass class+object and signs the save JWT — RS256
+  with the service-account key when `GOOGLE_WALLET_SERVICE_ACCOUNT_PATH` is set,
+  else a dev HS256 token. Set `GOOGLE_WALLET_ISSUER_ID` and (optionally) a logo
+  URL / background color.
+- **Apple**: builds `pass.json` + `manifest.json` + a zipped `.pkpass`; adds the
+  PKCS#7 detached **signature** when the Pass Type ID cert/key + WWDR cert PEMs
+  are configured, otherwise returns a clearly **unsigned dev** pass. Convert your
+  `.p12`/WWDR to PEM (commands are in `.env.example`).
+- Until creds are added, both run with **dev stub signers** so the full flow is
+  testable; drop the keys in and they go live with no code changes.
 
 Admin dashboard: `npm run dev:admin` (Vite on :5173).
 Mobile app: `cd apps/mobile && npm install && npm start` (Expo).

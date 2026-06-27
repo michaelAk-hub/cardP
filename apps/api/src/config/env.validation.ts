@@ -47,6 +47,23 @@ export const envValidationSchema = Joi.object({
   TWILIO_VERIFY_SERVICE_SID: Joi.string().allow('').optional(),
   OTP_DEV_CODE: Joi.string().default('000000'),
 
+  // ----- Wallet (optional — dev stub signers used until configured) -----
+  WALLET_DEV_SIGNING_SECRET: Joi.string().default('dev-wallet-signing-secret'),
+  // Google Wallet
+  GOOGLE_WALLET_ISSUER_ID: Joi.string().allow('').optional(),
+  GOOGLE_WALLET_SERVICE_ACCOUNT_PATH: Joi.string().allow('').optional(),
+  GOOGLE_WALLET_CLASS_SUFFIX: Joi.string().default('bluecard_student'),
+  GOOGLE_WALLET_LOGO_URL: Joi.string().allow('').optional(),
+  GOOGLE_WALLET_BG_COLOR: Joi.string().default('#0A4DA2'),
+  // Apple Wallet (PassKit). Provide PEM-converted certs; see README.
+  APPLE_PASS_TYPE_ID: Joi.string().allow('').optional(),
+  APPLE_TEAM_ID: Joi.string().allow('').optional(),
+  APPLE_PASS_CERT_PEM_PATH: Joi.string().allow('').optional(),
+  APPLE_PASS_KEY_PEM_PATH: Joi.string().allow('').optional(),
+  APPLE_PASS_KEY_PASSWORD: Joi.string().allow('').optional(),
+  APPLE_WWDR_PEM_PATH: Joi.string().allow('').optional(),
+  APPLE_PASS_ORG_NAME: Joi.string().default('Blue Card'),
+
   // ----- Jobs / queue -----
   // 'inline' runs jobs in-process (dev, no Redis); 'bullmq' uses Redis.
   QUEUE_DRIVER: Joi.string().valid('inline', 'bullmq').default('inline'),

@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { AccountStatus, isActivationEligible } from '@blue-card/shared';
 import { PrismaService } from '../prisma/prisma.service';
+import { WalletService } from '../wallet/wallet.service';
 
 // Central enforcement of the activation rule (spec §6.5): a student is `active`
 // ONLY when phone_verified AND id_verified. Call after either flag changes.
@@ -11,7 +12,10 @@ import { PrismaService } from '../prisma/prisma.service';
 export class ActivationService {
   private readonly logger = new Logger(ActivationService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly wallet: WalletService,
+  ) {}
 
   async reevaluate(studentId: string): Promise<AccountStatus> {
     const student = await this.prisma.student.findUnique({
@@ -42,7 +46,10 @@ export class ActivationService {
         where: { id: student.id },
         data: { accountStatus: AccountStatus.Active },
       });
-      // TODO(milestone: wallet): issue Apple/Google passes.
+      // Issue wallet passes (best-effort — must not block activation).
+      await this.wallet.issueForStudent(student.id).catch((err) =>
+        this.logger.error(`wallet issue failed for ${student.id}: ${err.message}`),
+      );
       // TODO(milestone: notifications): send "card ready" (SMS + email).
       this.logger.log(`Student ${student.id} activated`);
       return AccountStatus.Active;
@@ -53,6 +60,7 @@ export class ActivationService {
         where: { id: student.id },
         data: { accountStatus: AccountStatus.Pending },
       });
+      await this.wallet.revokeForStudent(student.id).catch(() => undefined);
       this.logger.warn(`Student ${student.id} lost eligibility -> pending`);
       return AccountStatus.Pending;
     }

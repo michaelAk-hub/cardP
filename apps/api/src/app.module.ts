@@ -25,6 +25,7 @@ import { CatalogModule } from './catalog/catalog.module';
 import { AdvertisingModule } from './advertising/advertising.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { GdprModule } from './gdpr/gdpr.module';
+import { WalletModule } from './wallet/wallet.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { GdprModule } from './gdpr/gdpr.module';
     TamperModule,
     NotificationsModule,
     GdprModule,
+    WalletModule,
     HealthModule,
     StudentAuthModule,
     AdminAuthModule,
@@ -57,7 +59,7 @@ import { GdprModule } from './gdpr/gdpr.module';
     CatalogModule,
     AdvertisingModule,
     AnalyticsModule,
-    // Remaining: wallet (7), mobile UI (9) — see CLAUDE.md build order.
+    // Remaining: student mobile UI (9) — see CLAUDE.md build order.
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })

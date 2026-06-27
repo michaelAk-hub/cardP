@@ -1,6 +1,7 @@
 import { AccountStatus } from '@blue-card/shared';
 import { ActivationService } from './activation.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { WalletService } from '../wallet/wallet.service';
 
 function build(student: any) {
   const update = jest.fn(async () => student);
@@ -10,7 +11,11 @@ function build(student: any) {
       update,
     },
   } as unknown as PrismaService;
-  return { svc: new ActivationService(prisma), update };
+  const wallet = {
+    issueForStudent: jest.fn(async () => undefined),
+    revokeForStudent: jest.fn(async () => undefined),
+  } as unknown as WalletService;
+  return { svc: new ActivationService(prisma, wallet), update, wallet };
 }
 
 describe('ActivationService — the activation rule', () => {

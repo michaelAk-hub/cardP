@@ -109,8 +109,10 @@ infra/
 6. **Stores & offers** ✅ — admin CRUD (bilingual, logo upload, discount/terms/
    expiry) + public catalog; broadcast-on-create (consent-filtered + opt-out);
    scheduled offer auto-expiry.
-7. **Wallet** — Apple + Google pass issuance on activation. *(deferred — needs
-   Apple/Google credentials)*
+7. **Wallet** ✅ — Apple (.pkpass) + Google (save-JWT) pass issuance on activation;
+   student endpoints gated on `active`; revoke on deactivate. Real signers when
+   certs/SA key present, dev stub signers otherwise. *(add Apple/Google creds to
+   go live)*
 8. **Advertising** ✅ — audience builder + preview; consent-filtered campaign
    send (email/SMS) with opt-out; per-recipient delivery tracking. inline/BullMQ.
 9. **Student app UI** — Foody/Wolt-style home + stores/offers + profile + wallet buttons.
