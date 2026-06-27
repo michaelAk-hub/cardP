@@ -1,9 +1,88 @@
 {
   "app": { "title": "Blue Card" },
-  "tabs": {
-    "home": "Home",
-    "stores": "Stores & Offers",
-    "profile": "Profile"
+  "common": {
+    "loading": "Loading…",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "save": "Save",
+    "submit": "Submit",
+    "error": "Error",
+    "ok": "OK",
+    "search": "Search",
+    "empty": "Nothing here yet"
   },
-  "foundation": { "ready": "Foundation scaffold ready." }
+  "tabs": { "home": "Home", "stores": "Stores", "profile": "Profile" },
+  "auth": {
+    "login": "Log in",
+    "register": "Create account",
+    "email": "Email",
+    "password": "Password",
+    "name": "First name",
+    "surname": "Last name",
+    "phone": "Phone",
+    "university": "University",
+    "selectUniversity": "Select your university",
+    "marketingConsent": "I agree to receive offers and updates",
+    "forgotPassword": "Forgot password?",
+    "noAccount": "Don't have an account? Sign up",
+    "haveAccount": "Already have an account? Log in",
+    "resetTitle": "Reset password",
+    "resetIntro": "Enter your email and we'll send you a reset link.",
+    "resetSent": "If that email is registered, a reset link is on its way.",
+    "loggingIn": "Logging in…",
+    "registering": "Creating your account…"
+  },
+  "verify": {
+    "title": "Verify your account",
+    "subtitle": "Activate your card by verifying your phone and uploading your student ID.",
+    "phone": "Phone verification",
+    "phoneVerified": "Phone verified",
+    "sendCode": "Send code",
+    "enterCode": "Enter the 6-digit code",
+    "verifyCode": "Verify code",
+    "codeSent": "Code sent via SMS",
+    "id": "Student ID",
+    "idVerified": "ID verified",
+    "idPending": "ID under review",
+    "uploadId": "Upload ID (front & back)",
+    "pickFront": "Choose front photo",
+    "pickBack": "Choose back photo",
+    "uploadDone": "ID uploaded — under review",
+    "email": "Email verification",
+    "emailVerified": "Email verified",
+    "sendEmail": "Send verification email",
+    "emailSent": "Verification email sent"
+  },
+  "home": {
+    "welcome": "Welcome, {{name}}",
+    "banner": "Your student discounts, in one card.",
+    "featured": "Featured offers",
+    "browse": "Browse all stores"
+  },
+  "stores": {
+    "title": "Stores & offers",
+    "searchPlaceholder": "Search stores…",
+    "offers": "Offers",
+    "noOffers": "No active offers right now",
+    "terms": "Terms",
+    "expires": "Expires {{date}}",
+    "percentOff": "{{value}}% off",
+    "fixedOff": "€{{value}} off"
+  },
+  "profile": {
+    "title": "Profile",
+    "status": "Account status",
+    "active": "Active",
+    "pending": "Pending verification",
+    "deactive": "Deactivated",
+    "cardSerial": "Card number",
+    "verification": "Verification",
+    "wallet": "Your card",
+    "addApple": "Add to Apple Wallet",
+    "addGoogle": "Add to Google Wallet",
+    "walletLocked": "Activate your account to add your card to Wallet",
+    "language": "Language",
+    "logout": "Log out",
+    "manageVerification": "Manage verification"
+  }
 }

@@ -4,13 +4,12 @@ A student discount-card platform. Students register on a native mobile app, get
 verified, and receive a **visual** discount card in Apple/Google Wallet.
 Protoporia admins manage students, stores, and offers from a web dashboard.
 
-> **Status:** Milestone 7 — **Wallet** now done, completing the **entire v1
-> backend**. Apple (`.pkpass`) and Google (save-JWT) passes are issued on
-> activation, exposed via student endpoints gated on `active`, and revoked on
-> deactivation; real signers engage when certs/keys are present, dev stub signers
-> otherwise. The only remaining milestone is the **Student mobile app UI (9)**.
-> Done: Foundation, Auth, Registration, Admin core, Tamper-check, Stores & offers,
-> Wallet, Advertising, Analytics/hardening — see `CLAUDE.md`.
+> **Status: all 10 milestones complete.** Milestone 9 — the **React Native
+> (Expo) student app** — is done: auth (login / register / forgot), phone-OTP +
+> ID-upload verification, a Foody/Wolt-style home + stores/offers browse, and a
+> profile with Add-to-Apple/Google-Wallet (gated on `active`), all bilingual
+> (el/en). Backend (M1–M8, M10) + Wallet (M7) were completed earlier. Wallet and
+> SMS/email/storage go fully live once their provider credentials are supplied.
 
 See [`CLAUDE.md`](./CLAUDE.md) for the full project context, invariants, and
 build order. Source specs: `bluecardmasterspec.md`, `bluecarddesign.md`.
@@ -240,6 +239,29 @@ GET /api/student/wallet/apple    streams a .pkpass (application/vnd.apple.pkpass
   `.p12`/WWDR to PEM (commands are in `.env.example`).
 - Until creds are added, both run with **dev stub signers** so the full flow is
   testable; drop the keys in and they go live with no code changes.
+
+### Student mobile app (Milestone 9)
+
+React Native (Expo) — `apps/mobile`. Run it:
+
+```bash
+cd apps/mobile
+npm install
+# point the app at your API (defaults to http://localhost:3000/api):
+EXPO_PUBLIC_API_URL=https://api.<domain>/api npm start
+```
+
+Screens (bilingual el/en, device-default locale):
+- **Auth** — login, register (university picker + marketing consent), forgot password.
+- **Verification** — phone OTP, student-ID upload (image picker), email verification.
+- **Home** — banner + featured offers.
+- **Stores** — searchable list with logos → store detail with offers.
+- **Profile** — verification status, **Add to Apple/Google Wallet** (enabled only
+  when `active`), language toggle, log out.
+
+Auth tokens are stored in the device secure store (Keychain/Keystore) with
+automatic refresh-on-401. Publish via Expo EAS; the app only needs
+`EXPO_PUBLIC_API_URL`.
 
 Admin dashboard: `npm run dev:admin` (Vite on :5173).
 Mobile app: `cd apps/mobile && npm install && npm start` (Expo).

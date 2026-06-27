@@ -26,6 +26,7 @@ import { AdvertisingModule } from './advertising/advertising.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { GdprModule } from './gdpr/gdpr.module';
 import { WalletModule } from './wallet/wallet.module';
+import { UniversitiesModule } from './universities/universities.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { WalletModule } from './wallet/wallet.module';
     GdprModule,
     WalletModule,
     HealthModule,
+    UniversitiesModule,
     StudentAuthModule,
     AdminAuthModule,
     AdminManagementModule,

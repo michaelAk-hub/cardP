@@ -115,7 +115,9 @@ infra/
    go live)*
 8. **Advertising** ✅ — audience builder + preview; consent-filtered campaign
    send (email/SMS) with opt-out; per-recipient delivery tracking. inline/BullMQ.
-9. **Student app UI** — Foody/Wolt-style home + stores/offers + profile + wallet buttons.
+9. **Student app UI** ✅ — Expo app: auth (login/register/forgot), phone-OTP +
+   ID-upload verification, Foody/Wolt-style home + stores/offers, profile with
+   Add-to-Apple/Google-Wallet (gated on active); bilingual (el/en).
 10. **Analytics + hardening** ✅ — dashboard metrics (summary + signups series);
     GDPR right-to-access/erasure (student self + admin); helmet headers + global
     exception filter; encrypted backup script. (rate limits already global.)
