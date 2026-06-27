@@ -263,6 +263,30 @@ Auth tokens are stored in the device secure store (Keychain/Keystore) with
 automatic refresh-on-401. Publish via Expo EAS; the app only needs
 `EXPO_PUBLIC_API_URL`.
 
+### Admin dashboard (React + Vite)
+
+Full Protoporia/root web dashboard in `apps/admin`, wired to the API:
+
+```bash
+cd apps/admin
+npm install
+VITE_API_URL=https://api.<domain>/api npm run dev   # Vite on :5173
+```
+
+- **Login** with email + password + **TOTP** (first login shows the enrolment QR;
+  thereafter prompts for the 6-digit code).
+- **Dashboard** — status stat cards + a 30-day signups chart.
+- **Students** — filter/search/paginate; row actions (send recovery, recreate
+  card, deactivate/reactivate) and an **ID-review modal** that shows the photos
+  (authenticated fetch) + tamper flag and approves/rejects (reason + description).
+- **Stores** — create stores, manage offers per store, run offer expiry.
+- **Advertising** — audience preview (matching/consenting/skipped) + email/SMS
+  composer; campaign list.
+- **Admins** (root only) — create / disable / enable admin accounts.
+
+Bilingual (el/en); tokens in `localStorage` with refresh-on-401. Build with
+`npm run build` (outputs static files to serve behind Nginx).
+
 Admin dashboard: `npm run dev:admin` (Vite on :5173).
 Mobile app: `cd apps/mobile && npm install && npm start` (Expo).
 
