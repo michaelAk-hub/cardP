@@ -1,0 +1,114 @@
+# Production stack for the Blue Card VPS (spec §10).
+#   docker compose -f infra/docker-compose.prod.yml --env-file .env up -d
+#
+# Images default to GHCR tags (set API_IMAGE / ADMIN_IMAGE in CI deploys); the
+# build: sections let you `docker compose build` directly on the host instead.
+# Object storage is an external S3-compatible bucket (configure S3_* in .env).
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER}']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  api:
+    image: ${API_IMAGE:-blue-card-api:local}
+    build:
+      context: ..
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    env_file: ../.env
+    environment:
+      NODE_ENV: production
+      QUEUE_DRIVER: bullmq
+      RUN_WORKERS: 'false' # the worker service consumes the queues
+      POSTGRES_HOST: postgres
+      REDIS_HOST: redis
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+
+  worker:
+    image: ${API_IMAGE:-blue-card-api:local}
+    build:
+      context: ..
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    command: ['node', 'dist/worker.js']
+    env_file: ../.env
+    environment:
+      NODE_ENV: production
+      QUEUE_DRIVER: bullmq
+      RUN_WORKERS: 'true'
+      POSTGRES_HOST: postgres
+      REDIS_HOST: redis
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
+    depends_on:
+      api: { condition: service_started } # api applies migrations first
+      redis: { condition: service_healthy }
+
+  admin:
+    image: ${ADMIN_IMAGE:-blue-card-admin:local}
+    build:
+      context: ../apps/admin
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: https://${API_DOMAIN}/api
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '443:443'
+    environment:
+      API_DOMAIN: ${API_DOMAIN}
+      ADMIN_DOMAIN: ${ADMIN_DOMAIN}
+    volumes:
+      - ./nginx/templates:/etc/nginx/templates:ro
+      - ./nginx/certbot/www:/var/www/certbot:ro
+      - ./nginx/certbot/conf:/etc/letsencrypt:ro
+    # Reload every 6h so renewed certs are picked up (templating still runs first).
+    command: >
+      sh -c "nginx -g 'daemon off;' & while :; do sleep 6h; nginx -s reload; done; wait"
+    depends_on:
+      - api
+      - admin
+
+  # Renews certificates in the background (see infra/nginx/README.md to obtain
+  # them the first time).
+  certbot:
+    image: certbot/certbot
+    restart: unless-stopped
+    volumes:
+      - ./nginx/certbot/conf:/etc/letsencrypt
+      - ./nginx/certbot/www:/var/www/certbot
+    entrypoint: >
+      sh -c "trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot; sleep 12h & wait $${!}; done"
+
+volumes:
+  pgdata:
+  redisdata:

@@ -67,6 +67,10 @@ export const envValidationSchema = Joi.object({
   // ----- Jobs / queue -----
   // 'inline' runs jobs in-process (dev, no Redis); 'bullmq' uses Redis.
   QUEUE_DRIVER: Joi.string().valid('inline', 'bullmq').default('inline'),
+  // With the bullmq driver, whether THIS process consumes the queues. The API
+  // sets false (enqueue only); the dedicated worker sets true. Ignored for the
+  // inline driver (jobs always run in-process).
+  RUN_WORKERS: Joi.boolean().truthy('true').falsy('false').default(true),
   // Tamper score thresholds (advisory): >= suspect -> suspect, >= flagged -> flagged.
   TAMPER_SUSPECT_THRESHOLD: Joi.number().min(0).max(1).default(0.34),
   TAMPER_FLAGGED_THRESHOLD: Joi.number().min(0).max(1).default(0.67),

@@ -1,0 +1,91 @@
+name: Deploy
+
+# Builds the api + admin images, pushes them to GHCR, then deploys to the VPS
+# over SSH. Trigger on a version tag or manually.
+#
+# Required repository secrets:
+#   VPS_HOST          SSH host (IP or domain)
+#   VPS_USER          SSH user
+#   VPS_SSH_KEY       private key for that user
+#   VITE_API_URL      e.g. https://api.example.com/api  (baked into the admin build)
+# GHCR uses the built-in GITHUB_TOKEN. The VPS must have the repo checked out at
+# ${VPS_APP_DIR} (default /opt/blue-card) with a populated .env.
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  APP_DIR: /opt/blue-card
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      api_image: ${{ steps.meta.outputs.api_image }}
+      admin_image: ${{ steps.meta.outputs.admin_image }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compute image tags
+        id: meta
+        run: |
+          repo=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          echo "api_image=${{ env.REGISTRY }}/${repo}-api:${{ github.sha }}" >> "$GITHUB_OUTPUT"
+          echo "admin_image=${{ env.REGISTRY }}/${repo}-admin:${{ github.sha }}" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/setup-buildx-action@v3
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build & push API image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/api/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.api_image }}
+
+      - name: Build & push admin image
+        uses: docker/build-push-action@v6
+        with:
+          context: apps/admin
+          file: apps/admin/Dockerfile
+          push: true
+          build-args: |
+            VITE_API_URL=${{ secrets.VITE_API_URL }}
+          tags: ${{ steps.meta.outputs.admin_image }}
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          envs: API_IMAGE,ADMIN_IMAGE
+          script: |
+            set -e
+            cd ${{ env.APP_DIR }}
+            git pull --ff-only || true
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            export API_IMAGE=${{ needs.build.outputs.api_image }}
+            export ADMIN_IMAGE=${{ needs.build.outputs.admin_image }}
+            # Persist the resolved image tags for compose.
+            grep -v -E '^(API_IMAGE|ADMIN_IMAGE)=' .env > .env.tmp || true
+            mv .env.tmp .env
+            echo "API_IMAGE=${API_IMAGE}" >> .env
+            echo "ADMIN_IMAGE=${ADMIN_IMAGE}" >> .env
+            bash infra/scripts/deploy.sh

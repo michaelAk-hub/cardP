@@ -287,6 +287,34 @@ VITE_API_URL=https://api.<domain>/api npm run dev   # Vite on :5173
 Bilingual (el/en); tokens in `localStorage` with refresh-on-401. Build with
 `npm run build` (outputs static files to serve behind Nginx).
 
+## Production deployment (Hostinger VPS)
+
+Single-VPS Docker Compose stack (`infra/docker-compose.prod.yml`): `nginx`
+(reverse proxy + TLS), `api`, `worker`, `postgres`, `redis`, `admin`, `certbot`.
+Object storage is an external S3-compatible bucket.
+
+- **Images**: `apps/api/Dockerfile` builds one image used by both `api` (serves
+  HTTP, applies `prisma migrate deploy` on start) and `worker` (runs
+  `dist/worker.js`). `apps/admin/Dockerfile` builds the Vite bundle and serves it
+  with nginx. Queues use BullMQ in prod; the API enqueues (`RUN_WORKERS=false`)
+  and the worker consumes (`RUN_WORKERS=true`).
+- **Nginx/TLS**: `infra/nginx/templates/bluecard.conf.template` routes
+  `api.<domain>` → api and `admin.<domain>` → admin, with Let's Encrypt certs.
+
+First deploy on the VPS:
+```bash
+git clone <repo> /opt/blue-card && cd /opt/blue-card
+cp .env.example .env && edit .env   # secrets + API_DOMAIN/ADMIN_DOMAIN/LETSENCRYPT_EMAIL
+bash infra/scripts/init-letsencrypt.sh          # obtain TLS certs (one time)
+docker compose -f infra/docker-compose.prod.yml --env-file .env up -d
+```
+
+**CI/CD** — `.github/workflows/deploy.yml` (on `v*` tags / manual): builds the
+api + admin images, pushes to **GHCR**, then SSHes to the VPS and runs
+`infra/scripts/deploy.sh` (pull → migrate via api → up). Required secrets:
+`VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY`, `VITE_API_URL`. Mobile ships via Expo EAS.
+Nightly DB backups: `infra/scripts/backup.sh` (gzip `pg_dump` + optional GPG).
+
 Admin dashboard: `npm run dev:admin` (Vite on :5173).
 Mobile app: `cd apps/mobile && npm install && npm start` (Expo).
 

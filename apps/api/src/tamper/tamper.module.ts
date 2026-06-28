@@ -31,10 +31,14 @@ import {
         const logger = new Logger('TamperModule');
         if (config.get<string>('QUEUE_DRIVER', 'inline') === 'bullmq') {
           logger.log('Tamper-check using BullMQ driver');
-          return new BullmqTamperQueue(check, {
-            host: config.get<string>('REDIS_HOST', 'localhost'),
-            port: config.get<number>('REDIS_PORT', 6379),
-          });
+          return new BullmqTamperQueue(
+            check,
+            {
+              host: config.get<string>('REDIS_HOST', 'localhost'),
+              port: config.get<number>('REDIS_PORT', 6379),
+            },
+            config.get<boolean>('RUN_WORKERS', true),
+          );
         }
         logger.warn('Tamper-check using inline driver (no Redis)');
         return new InlineTamperQueue(check);

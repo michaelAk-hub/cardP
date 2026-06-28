@@ -46,12 +46,17 @@ export class BullmqTamperQueue
   constructor(
     private readonly check: TamperCheckService,
     private readonly connection: { host: string; port: number },
+    private readonly runWorker: boolean,
   ) {
     super();
   }
 
   onModuleInit(): void {
     this.queue = new Queue(QUEUE_NAME, { connection: this.connection });
+    if (!this.runWorker) {
+      this.logger.log('BullMQ tamper-check producer ready (worker disabled)');
+      return;
+    }
     this.worker = new Worker(
       QUEUE_NAME,
       async (job) => this.check.run(job.data.idDocumentId as string),

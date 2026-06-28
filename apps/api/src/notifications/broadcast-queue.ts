@@ -39,12 +39,17 @@ export class BullmqBroadcastQueue
   constructor(
     private readonly broadcast: BroadcastService,
     private readonly connection: { host: string; port: number },
+    private readonly runWorker: boolean,
   ) {
     super();
   }
 
   onModuleInit(): void {
     this.queue = new Queue(QUEUE_NAME, { connection: this.connection });
+    if (!this.runWorker) {
+      this.logger.log('BullMQ broadcast producer ready (worker disabled)');
+      return;
+    }
     this.worker = new Worker(
       QUEUE_NAME,
       async (job) =>

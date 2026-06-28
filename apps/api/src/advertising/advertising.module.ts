@@ -21,10 +21,14 @@ import {
         const logger = new Logger('AdvertisingModule');
         if (config.get<string>('QUEUE_DRIVER', 'inline') === 'bullmq') {
           logger.log('Campaign send using BullMQ driver');
-          return new BullmqCampaignQueue(send, {
-            host: config.get<string>('REDIS_HOST', 'localhost'),
-            port: config.get<number>('REDIS_PORT', 6379),
-          });
+          return new BullmqCampaignQueue(
+            send,
+            {
+              host: config.get<string>('REDIS_HOST', 'localhost'),
+              port: config.get<number>('REDIS_PORT', 6379),
+            },
+            config.get<boolean>('RUN_WORKERS', true),
+          );
         }
         logger.warn('Campaign send using inline driver (no Redis)');
         return new InlineCampaignQueue(send);

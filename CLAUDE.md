@@ -76,9 +76,16 @@ apps/
 packages/
   shared/   # shared enums, types, the activation rule
 infra/
-  docker-compose.yml   # local dev: postgres + redis
-  nginx/  scripts/      # deploy assets (filled at deploy milestone)
+  docker-compose.yml        # local dev: postgres + redis
+  docker-compose.prod.yml   # prod: nginx, api, worker, postgres, redis, admin, certbot
+  nginx/                    # reverse-proxy template + TLS (certbot)
+  scripts/                  # deploy.sh, init-letsencrypt.sh, backup.sh
 ```
+
+Deploy: `apps/api/Dockerfile` (api + worker, one image; runs `prisma migrate
+deploy` on start) and `apps/admin/Dockerfile` (Vite build → nginx). CI/CD in
+`.github/workflows/deploy.yml` (build → GHCR → SSH `deploy.sh`). Workers run in
+a separate process (`QUEUE_DRIVER=bullmq`, API `RUN_WORKERS=false`, worker `true`).
 
 ## Conventions
 
