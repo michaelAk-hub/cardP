@@ -15,6 +15,7 @@
     "prisma:seed": "ts-node prisma/seed.ts",
     "prisma:studio": "prisma studio",
     "create:root": "ts-node scripts/create-root.ts",
+    "ensure:google-wallet-class": "ts-node scripts/ensure-google-wallet-class.ts",
     "test": "jest",
     "lint": "eslint \"src/**/*.ts\""
   },

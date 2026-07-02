@@ -232,7 +232,9 @@ GET /api/student/wallet/apple    streams a .pkpass (application/vnd.apple.pkpass
 - **Google**: builds a generic pass class+object and signs the save JWT — RS256
   with the service-account key when `GOOGLE_WALLET_SERVICE_ACCOUNT_PATH` is set,
   else a dev HS256 token. Set `GOOGLE_WALLET_ISSUER_ID` and (optionally) a logo
-  URL / background color.
+  URL / background color. In prod put the SA JSON in `infra/secrets/` (mounted at
+  `/secrets`). Optional one-time class pre-creation (helps publishing review):
+  `npm run ensure:google-wallet-class -w @blue-card/api`.
 - **Apple**: builds `pass.json` + `manifest.json` + a zipped `.pkpass`; adds the
   PKCS#7 detached **signature** when the Pass Type ID cert/key + WWDR cert PEMs
   are configured, otherwise returns a clearly **unsigned dev** pass. Convert your

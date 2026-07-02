@@ -46,6 +46,10 @@ services:
       POSTGRES_HOST: postgres
       REDIS_HOST: redis
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
+    volumes:
+      # Credential files (Google Wallet SA JSON, Apple cert PEMs). Put them in
+      # infra/secrets/ on the host and point the *_PATH envs at /secrets/...
+      - ./secrets:/secrets:ro
     depends_on:
       postgres: { condition: service_healthy }
       redis: { condition: service_healthy }
